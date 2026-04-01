@@ -1,0 +1,685 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Starter Template for Bootstrap</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <!-- <link href="../../assets/css/ie10-viewport-bug-workaround.css" rel="stylesheet"> -->
+
+    <!-- Custom styles for this template -->
+    <link href="starter-template.css" rel="stylesheet">
+
+    <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
+    <!--[if lt IE 9]><script src="../../assets/js/ie8-responsive-file-warning.js"></script><![endif]-->
+    <!-- <script src="../../assets/js/ie-emulation-modes-warning.js"></script> -->
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-barAwesome ECE5725"></span>
+          </button>
+          <a class="navbar-brand" href="#">STELLARIS on Pi4</a>
+        </div>
+        <div id="navbar" class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li class="active"><a href="#">Home</a></li>
+            <li><a href="#intro">Introduction</a></li>
+            <li><a href="#obj">Project Objective</a></li>
+            <li><a href="#design">Design</a></li>
+            <li><a href="#drawings">Drawings</a></li>
+            <li><a href="#testing">Testing</a></li>
+            <li><a href="#result">Result</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+
+    <div class="container">
+
+      <div class="starter-template">
+        <h1>STELLARIS</h1>
+        <p class="lead">An Interstellar Strategy and AI Simulation Game Based on Raspberry Pi<br>A Project By Qingyin Zhong and Zhe Tong</p>
+      </div>
+
+      <hr id="intro">
+
+      <div style="text-align:center;">
+              <h2>Introduction</h2>
+              <p style="text-align: left;padding: 0px 30px;font-size:18px;">This project implements a fully playable 2D interstellar real-time strategy (RTS) game on a Raspberry Pi 4, built with Python/Pygame and integrated with embedded peripherals. Players can pan and zoom across star systems, buy food, hire workers, mine minerals, colonize planets, manage resources, and battle an AI opponent. The win condition is to be the first to capture the opponent's homeworld. To highlight the embedded aspect, we bind the game state to a physical NeoPixel LED strip, providing low cost, high salience feedback. Additionally, the PiTFT's 4 hardware buttons are mapped to frequently-used in-game actions (pause, buy worker, trade, exit), enabling quick access without touchscreen interaction.</p>
+      </div>
+
+    <hr id='obj'>
+
+      <div class="row">
+          <div class="col-md-4" style="text-align:center;">
+          <img class="img-rounded" src="pics/1.jpg" alt="Project Objective Illustration" width="240" height="240">
+          </div>
+          <div class="col-md-8" style="font-size:18px;">
+          <h2>Project Objective:</h2>
+          <ul>
+              <li>Be able to run the essential core logic—buy workers, assign them to mine, sell minerals to gain wealth, purchase different unit types, transport units by starship to begin colonization and combat, and achieve victory—so that a complete game can be played smoothly from start to finish.</li>
+              <li>Integrate a NeoPixel (9 LED) progress bar linked to game state (all on = win, all off = loss. orange/blue/green for disadvantage/even/advantage).</li>
+              <li>Implement PiTFT hardware button controls (GPIO 17, 22, 23, 27) for quick access to common game actions (pause, buy worker, trade, exit) with proper debouncing.</li>
+              <li>Add an AI opponent (we choose to use API instead of an if statement opponent) and ensure that AI versus player matches are challenging.</li>
+              <li>Stability: continuous play whole game without crash.</li>
+              <li>Enrich the variety of minerals, unit types, and planet types, and introduce subtle counter relationships among units to enhance gameplay depth and fun.</li>
+          </ul>
+          </div>
+      </div>
+
+    <hr id='design'>
+
+      <div style="text-align:center;">
+              <h2>Design</h2>
+              <div style="text-align: left;padding: 0px 30px;font-size:18px;">
+                  <h3>Software Design</h3>
+                  <p>The game consists of 4,346 lines of code organized into 8 layered classes:</p>
+                  <ul>
+                      <li><strong>Hardware Layer (Line 1-200):</strong> NeoPixel LED control system using 9 LEDs to display real-time game status (blue=even, green=advantage, orange=disadvantage) via GPIO 12. GPIO button initialization for 4 PiTFT hardware buttons (GPIO 17, 22, 23, 27) with pull-up resistor configuration and debounce handling.</li>
+                      <li><strong>Display Layer (Line 201-340):</strong> Display device detection and configuration, supporting both PiTFT touchscreen (320x240) and external monitor (800x600) modes with automatic environment detection and SDL parameter configuration.</li>
+                      <li><strong>Audio Layer (Line 341-410):</strong> Audio system initialization, loading 5 game sound effects (clicks, alerts, etc.) and background music, supporting multi-channel simultaneous playback.</li>
+                      <li><strong>UI Resource Layer (Line 411-575):</strong> UI resource configuration including resolution adaptation, Chinese font loading, background image/starfield generation, color definitions, and game constants (planet names, mineral colors, etc.).</li>
+                      <li><strong>Game Data Layer (Line 576-902):</strong> Game base data definitions including game state enums (menu/difficulty selection/in-game), planet type enums, and 5 combat unit data catalogs (health/attack/price/special abilities).</li>
+                      <li><strong>Game Object Layer (Line 591-1082):</strong> Core game object classes:
+                          <ul>
+                              <li>CelestialBody: Celestial objects (stars/planets), handling resource generation, ownership, and rendering</li>
+                              <li>MovingFleet: Mobile fleets, managing unit transportation</li>
+                              <li>StarSystem: Star system objects, containing 1 star + 2-4 planets</li>
+                          </ul>
+                      </li>
+                      <li><strong>Game World Layer (Line 1083-3927):</strong> Core layer (66.6% of codebase) - GameWorld class managing the entire game world:
+                          <ul>
+                              <li>Star system generation and layout</li>
+                              <li>Resource management system (5 mineral types + USD)</li>
+                              <li>Unit recruitment and movement</li>
+                              <li>Combat system (including special unit abilities)</li>
+                              <li>Worker construction system</li>
+                              <li>AI decision system (rule-based AI + LLM AI)</li>
+                              <li>Camera system (drag/zoom)</li>
+                              <li>Complete UI rendering (resource panel, planet info, build panel, minimap, etc.)</li>
+                              <li>Victory/defeat determination</li>
+                          </ul>
+                      </li>
+                      <li><strong>UI Interaction Layer (Line 3928-4346):</strong> Main loop and event handling:
+                          <ul>
+                              <li>Menu drawing functions</li>
+                              <li>Button definitions (difficulty/scale selection)</li>
+                              <li>main() main loop: 60FPS event processing, state updates, rendering</li>
+                              <li>Mouse/touch event response</li>
+                              <li>GPIO hardware button polling with falling edge detection and 200ms debounce (pause, buy worker, trade, exit)</li>
+                              <li>Keyboard shortcuts</li>
+                              <li>Resource cleanup (LED/NeoPixel/GPIO/Pygame)</li>
+                          </ul>
+                      </li>
+                  </ul>
+                  
+                  <h3>Hardware Design</h3>
+                  <h4>System Overview</h4>
+                  <ul>
+                      <li><strong>Main controller:</strong> Raspberry Pi 4</li>
+                      <li><strong>Display:</strong> HDMI for the final demo; PiTFT 480×320 compatibility code retained (PiTFT uses GPIO18 for backlight)</li>
+                      <li><strong>Peripherals:</strong> NeoPixel (WS2812B) 9-LED strip, data pin on GPIO12 (BCM12, physical Pin 32); PiTFT 4 physical buttons (GPIO 17, 22, 23, 27)</li>
+                      <li><strong>Input:</strong> Mouse / touch (when using PiTFT) / PiTFT hardware buttons</li>
+                      <li><strong>Audio:</strong> pygame.mixer</li>
+                  </ul>
+                  
+                  <h4>Key Wiring</h4>
+                  <table class="table table-bordered" style="margin: 20px auto; max-width: 800px;">
+                      <thead>
+                          <tr>
+                              <th>Signal/Power</th>
+                              <th>Raspberry Pi Pin</th>
+                              <th>Connect To</th>
+                              <th>Notes</th>
+                          </tr>
+                      </thead>
+                      <tbody>
+                          <tr>
+                              <td>Data</td>
+                              <td>GPIO12 / BCM12 / Pin 32</td>
+                              <td>LED strip DIN</td>
+                              <td>Series 500 Ω</td>
+                          </tr>
+                          <tr>
+                              <td>GND</td>
+                              <td>Any GND (e.g., Pin 6)</td>
+                              <td>LED strip GND and 5 V PSU GND</td>
+                              <td>All three must share a common ground</td>
+                          </tr>
+                          <tr>
+                              <td>+5 V</td>
+                              <td>External 5 V supply (+)</td>
+                              <td>LED strip +5 V</td>
+                              <td>—</td>
+                          </tr>
+                          <tr>
+                              <td>Electrolytic capacitor</td>
+                              <td>—</td>
+                              <td>Across strip input +5 V ↔ GND</td>
+                              <td>100 µF</td>
+                          </tr>
+                      </tbody>
+                  </table>
+                  
+                  <h4>Signal Integrity & Protection</h4>
+                  <ul>
+                      <li><strong>Series resistor (500 Ω):</strong> damps ringing/overshoot and protects the first LED's data input.</li>
+                      <li><strong>Capacitor (100 µF):</strong> mitigates inrush current and voltage dips during sudden load changes.</li>
+                      <li><strong>Common ground:</strong> the Pi GND, LED strip GND, and 5 V supply GND must be connected together.</li>
+                      <li><strong>Power-up sequence:</strong> connect GND → +5 V → start program output; reverse the order when powering down.</li>
+                  </ul>
+                  
+                  <h4>PiTFT Hardware Buttons</h4>
+                  <p>The PiTFT screen includes 4 physical buttons that provide quick access to common game functions without requiring touchscreen interaction. All buttons use internal pull-up resistors and are triggered on falling edge with 200ms debounce time.</p>
+                  <table class="table table-bordered" style="margin: 20px auto; max-width: 800px;">
+                      <thead>
+                          <tr>
+                              <th>GPIO Pin</th>
+                              <th>Button Function</th>
+                              <th>Description</th>
+                          </tr>
+                      </thead>
+                      <tbody>
+                          <tr>
+                              <td>GPIO 17</td>
+                              <td>Pause/Resume</td>
+                              <td>Toggle game pause state during gameplay</td>
+                          </tr>
+                          <tr>
+                              <td>GPIO 22</td>
+                              <td>Buy Worker</td>
+                              <td>Purchase a worker for 5 food (if sufficient resources available)</td>
+                          </tr>
+                          <tr>
+                              <td>GPIO 23</td>
+                              <td>Trade</td>
+                              <td>Toggle trade panel display for buying/selling minerals</td>
+                          </tr>
+                          <tr>
+                              <td>GPIO 27</td>
+                              <td>Exit</td>
+                              <td>Exit the game and clean up resources (works in any game state)</td>
+                          </tr>
+                      </tbody>
+                  </table>
+                  <p><strong>Implementation Details:</strong></p>
+                  <ul>
+                      <li><strong>Pull-up configuration:</strong> All buttons configured with internal pull-up resistors (GPIO.PUD_UP)</li>
+                      <li><strong>Debounce:</strong> 200ms debounce time to prevent multiple triggers from mechanical bounce</li>
+                      <li><strong>Edge detection:</strong> Falling edge detection (button state changes from HIGH to LOW when pressed)</li>
+                      <li><strong>Audio feedback:</strong> Click sound effects play when buttons are pressed (when available)</li>
+                  </ul>
+              </div>
+      </div>
+
+    <hr id='drawings'>
+
+      <div style="text-align:center;">
+              <h2>Drawings</h2>
+              <img class="img-rounded" src="pics/draw.jpg" alt="System Wiring Diagram" style="max-width: 80%; height: auto; margin: 20px auto; display: block;">
+              <div style="text-align: left;padding: 0px 30px;font-size:18px;">
+                  <h3>Wiring Overview</h3>
+                  <p>The system integrates a Raspberry Pi 4 with a NeoPixel LED strip and PiTFT buttons:</p>
+                  <ul>
+                      <li><strong>NeoPixel Strip (9 LEDs):</strong> Connected to <strong>GPIO12 (Pin 32)</strong> for data. Powered by an external 5V supply with a common ground to the Pi. Includes a 500Ω series resistor for data protection and a 100µF capacitor for power stability.</li>
+                      <li><strong>PiTFT Buttons:</strong> Four tactile buttons wired to <strong>GPIO 17, 22, 23, and 27</strong>. These use internal pull-up resistors and trigger game actions (Pause, Buy Worker, Trade, Exit) on falling edges.</li>
+                  </ul>
+              </div>
+      </div>
+
+    <hr id='testing'>
+
+      <div style="text-align:center;">
+              <h2>Testing</h2>
+              <div style="text-align: left;padding: 0px 30px;font-size:18px;">
+                  <h3>1. Objectives & Acceptance Criteria</h3>
+                  <ul>
+                      <li><strong>Playability:</strong> Complete a full game loop (buy workers → mining → trading → recruit units → transport → colonize/combat → capture opponent's homeworld).</li>
+                      <li><strong>Stability:</strong> Continuous gameplay ≥30 min without crashes or resource leaks.</li>
+                      <li><strong>LED Mapping:</strong> 9 LEDs with correct logic (initial 5 lit; 1–3 orange; 4–7 blue; 7–9 green; all on = victory, all off = defeat), refresh rate ≥10 Hz.</li>
+                      <li><strong>PiTFT:</strong> 480×320 display with no overlapping elements, clickable buttons, average ≥25 FPS.</li>
+                      <li><strong>Hardware Buttons:</strong> All 4 PiTFT buttons (GPIO 17, 22, 23, 27) respond correctly with proper debouncing, no false triggers.</li>
+                  </ul>
+                  
+                  <h3>2. Testing Environment</h3>
+                  <ul>
+                      <li><strong>Hardware:</strong> Raspberry Pi 4 (HDMI for main demo; PiTFT compatible), NeoPixel 9 LEDs (GPIO12), PiTFT hardware buttons (GPIO 17, 22, 23, 27).</li>
+                      <li><strong>Power:</strong> Official Pi 5V/3A; (if separate 5V for LED strip, share common ground with Pi).</li>
+                      <li><strong>Software:</strong> Python 3.11, Pygame, rpi_ws281x, RPi.GPIO, AI via API.</li>
+                  </ul>
+                  
+                  <h3>3. Functional Test Cases</h3>
+                  <table class="table table-bordered" style="margin: 20px auto;">
+                      <thead>
+                          <tr>
+                              <th>Stage</th>
+                              <th>Purpose</th>
+                              <th>Steps</th>
+                              <th>Expected Result</th>
+                          </tr>
+                      </thead>
+                      <tbody>
+                          <tr>
+                              <td>F-01</td>
+                              <td>Economic cycle</td>
+                              <td>Buy workers → assign to mine → sell minerals</td>
+                              <td>Assets calculated correctly with price fluctuations (±50%)</td>
+                          </tr>
+                          <tr>
+                              <td>F-02</td>
+                              <td>Unit recruitment & transport</td>
+                              <td>Buy multiple unit types → form fleet → move across star systems</td>
+                              <td>Path connected, movement by edge weight, engage/colonize upon arrival</td>
+                          </tr>
+                          <tr>
+                              <td>F-03</td>
+                              <td>Counter relationships & combat</td>
+                              <td>Trigger combat with unit counters</td>
+                              <td>Damage & conversions follow design, generate combat summary</td>
+                          </tr>
+                          <tr>
+                              <td>F-04</td>
+                              <td>Victory determination</td>
+                              <td>Capture enemy homeworld</td>
+                              <td>Victory popup, all LEDs lit</td>
+                          </tr>
+                          <tr>
+                              <td>F-05</td>
+                              <td>Defeat determination</td>
+                              <td>Own homeworld captured</td>
+                              <td>Defeat popup, all LEDs off</td>
+                          </tr>
+                          <tr>
+                              <td>F-06</td>
+                              <td>Save/Exit</td>
+                              <td>Normal exit</td>
+                              <td>Resources released (LED strip off, audio stopped), no residual processes</td>
+                          </tr>
+                      </tbody>
+                  </table>
+                  
+                  <h3>4. AI Testing (API Mode)</h3>
+                  <table class="table table-bordered" style="margin: 20px auto;">
+                      <thead>
+                          <tr>
+                              <th>ID</th>
+                              <th>Purpose</th>
+                              <th>Steps</th>
+                              <th>Expected Result</th>
+                          </tr>
+                      </thead>
+                      <tbody>
+                          <tr>
+                              <td>A-01</td>
+                              <td>Connectivity</td>
+                              <td>Disconnect/reconnect network</td>
+                              <td>Offline triggers local if-statement logic; reconnection resumes API</td>
+                          </tr>
+                          <tr>
+                              <td>A-02</td>
+                              <td>Decision quality</td>
+                              <td>Multiple matches</td>
+                              <td>Shows expansion & attack rhythm, not random wandering</td>
+                          </tr>
+                          <tr>
+                              <td>A-03</td>
+                              <td>Decision latency</td>
+                              <td>Sample continuously for 5 min</td>
+                              <td>p95 ≤4 s, timeout doesn't block rendering</td>
+                          </tr>
+                      </tbody>
+                  </table>
+                  
+                  <h3>5. LED (NeoPixel) Test Cases (GPIO12)</h3>
+                  <table class="table table-bordered" style="margin: 20px auto;">
+                      <thead>
+                          <tr>
+                              <th>ID</th>
+                              <th>Purpose</th>
+                              <th>Steps</th>
+                              <th>Expected Result</th>
+                          </tr>
+                      </thead>
+                      <tbody>
+                          <tr>
+                              <td>L-01</td>
+                              <td>Initial state</td>
+                              <td>Enter game</td>
+                              <td>5 LEDs lit (neutral)</td>
+                          </tr>
+                          <tr>
+                              <td>L-02</td>
+                              <td>Advantage growth</td>
+                              <td>Continuously capture planets</td>
+                              <td>LED count increases monotonically; 7–9 LEDs are green</td>
+                          </tr>
+                          <tr>
+                              <td>L-03</td>
+                              <td>Disadvantage decline</td>
+                              <td>Enemy captures planets</td>
+                              <td>LED count decreases monotonically; 1–3 LEDs are orange</td>
+                          </tr>
+                          <tr>
+                              <td>L-04</td>
+                              <td>Even state</td>
+                              <td>Both sides contending</td>
+                              <td>4–7 LEDs are blue</td>
+                          </tr>
+                          <tr>
+                              <td>L-05</td>
+                              <td>Victory/defeat mapping</td>
+                              <td>Win/lose determination</td>
+                              <td>Victory: all lit; Defeat: all off; refresh ≥10 Hz</td>
+                          </tr>
+                      </tbody>
+                  </table>
+                  
+                  <h3>6. PiTFT Display/Touch & Hardware Buttons</h3>
+                  <table class="table table-bordered" style="margin: 20px auto;">
+                      <thead>
+                          <tr>
+                              <th>ID</th>
+                              <th>Purpose</th>
+                              <th>Steps</th>
+                              <th>Expected Result</th>
+                          </tr>
+                      </thead>
+                      <tbody>
+                          <tr>
+                              <td>T-01</td>
+                              <td>Font & layout</td>
+                              <td>Run at 480×320</td>
+                              <td>Text doesn't overlap, buttons not obscured</td>
+                          </tr>
+                          <tr>
+                              <td>T-02</td>
+                              <td>Touch accuracy</td>
+                              <td>Continuously click common buttons</td>
+                              <td>Low mis-tap rate, consecutive triggers possible</td>
+                          </tr>
+                          <tr>
+                              <td>T-03</td>
+                              <td>Performance</td>
+                              <td>Continuous operation for 1 min</td>
+                              <td>Average ≥25 FPS</td>
+                          </tr>
+                          <tr>
+                              <td>B-01</td>
+                              <td>Button GPIO 17 (Pause)</td>
+                              <td>Press during gameplay</td>
+                              <td>Game pauses/resumes correctly, no double-trigger</td>
+                          </tr>
+                          <tr>
+                              <td>B-02</td>
+                              <td>Button GPIO 22 (Buy Worker)</td>
+                              <td>Press with sufficient food</td>
+                              <td>Worker purchased, resources deducted, audio feedback plays</td>
+                          </tr>
+                          <tr>
+                              <td>B-03</td>
+                              <td>Button GPIO 23 (Trade)</td>
+                              <td>Press to toggle trade panel</td>
+                              <td>Trade panel appears/disappears correctly</td>
+                          </tr>
+                          <tr>
+                              <td>B-04</td>
+                              <td>Button GPIO 27 (Exit)</td>
+                              <td>Press to exit game</td>
+                              <td>Clean exit with resource cleanup (LEDs off, no residual processes)</td>
+                          </tr>
+                          <tr>
+                              <td>B-05</td>
+                              <td>Button debouncing</td>
+                              <td>Rapid press any button</td>
+                              <td>200ms debounce prevents multiple triggers, no false positives</td>
+                          </tr>
+                      </tbody>
+                  </table>
+                  
+                  <h3>7. Performance & Stability</h3>
+                  <ul>
+                      <li><strong>FPS:</strong> Record 60s average ≥30 (HDMI).</li>
+                      <li><strong>Input latency:</strong> Key press → screen update median ≤50 ms.</li>
+                      <li><strong>Resources:</strong> Monitor memory/CPU; memory increase <10% over 30 min gameplay.</li>
+                      <li><strong>Stress test:</strong> Simultaneous combat + unit recruitment + trading for 1 min, no freeze/frame drop/crash.</li>
+                  </ul>
+                  
+                  <h3>8. Acceptance Checklist</h3>
+                  <ul>
+                      <li>Complete game playthrough smooth, no crashes</li>
+                      <li>HDMI average FPS ≥30; input latency median ≤50 ms</li>
+                      <li>AI decision p95 ≤4 s</li>
+                      <li>LED color & on/off logic correct, refresh ≥10 Hz</li>
+                      <li>All 4 PiTFT hardware buttons functioning correctly with proper debouncing</li>
+                      <li>Exit releases LED strip/audio/GPIO resources</li>
+                      <li>README, run scripts, and results website complete</li>
+                  </ul>
+              </div>
+      </div>
+
+    <hr id='result'>
+
+      <div style="text-align:center;">
+              <h2>Result</h2>
+              <div style="text-align: left;padding: 0px 30px;font-size:18px;">
+                  <p>In the end, we successfully completed the game and realized almost all of our initial ideas, solving countless issues along the way. At first, we tried to download the AI model onto the PiTFT so we could use AI battles without connecting to a phone hotspot, but we found the AI's memory footprint was too large and the local AI wasn't strong enough to feel challenging. We therefore switched to using an API for the AI, but then ran into an interesting problem: whenever the AI was "thinking," the whole game would stutter. We discovered this was because the AI and the game were running in the same thread, causing blocking; separating them into different threads resolved the issue. We faced many such problems, and ultimately worked through them all.</p>
+                  <p>The only regret is that, because PiTFT touch is not precise enough, we ended up playing the game over HDMI. This doesn't match our original plan to make the PiTFT into a small handheld with on-screen controls. Our UI has many small buttons, which leads to frequent mis-taps on the PiTFT and significantly hurts the gameplay experience.</p>
+              </div>
+      </div>
+
+    <hr>
+
+    <div class="row" style="text-align:center;">
+          <h2>Work Distribution</h2>
+          <div style="text-align:center;">
+              <img class="img-rounded" src="pics/group.jpg" alt="Team Group Photo" style="width:80%;">
+          </div>
+          
+          <div style="text-align: left;padding: 0px 30px;font-size:18px;margin-top:20px;">
+              <h3>Game Development</h3>
+              <ul>
+                  <li><strong>Main game logic:</strong> Work together (see details below)</li>
+                  <li><strong>AI logic:</strong> Mainly Qingyin Zhong</li>
+                  <li><strong>Game menu interface:</strong> Mainly Qingyin Zhong</li>
+                  <li><strong>Planet and star generation, linking, and path logic:</strong> Mainly Qingyin Zhong</li>
+                  <li><strong>Trading and economic cycle logic:</strong> Mainly Zhe Tong</li>
+                  <li><strong>Mining logic:</strong> Mainly Zhe Tong</li>
+                  <li><strong>Starship logic:</strong> Mainly Qingyin Zhong</li>
+                  <li><strong>Unit types and worker logic:</strong> Mainly Zhe Tong</li>
+                  <li><strong>Victory/defeat determination:</strong> Work together</li>
+                  <li><strong>Fog of war:</strong> Work together</li>
+                  <li><strong>Other details (background BGM, images, etc.):</strong> Mainly Qingyin Zhong</li>
+              </ul>
+              
+              <h3>Hardware & Testing</h3>
+              <ul>
+                  <li><strong>LED integration and logic:</strong> Mainly Zhe Tong</li>
+                  <li><strong>Game testing:</strong> Work together</li>
+                  <li><strong>Debug and bug fixes:</strong> Work together</li>
+                  <li><strong>Game optimization:</strong> Work together</li>
+                  <li><strong>PiTFT display optimization:</strong> Work together</li>
+              </ul>
+          </div>
+          
+          <div class="col-md-6" style="font-size:16px">
+              <img class="img-rounded" src="pics/a.jpg" alt="Qingyin Zhong" width="240" height="240">
+              <h3>Qingyin Zhong</h3>
+              <p class="lead">qz425@cornell.edu</p>
+              <p> AI implementation, Game menu interface, planet/star generation and linking, starship logic, sound effect implementation
+          </div>
+          <div class="col-md-6" style="font-size:16px">
+              <img class="img-rounded" src="pics/b.jpg" alt="Zhe Tong" width="240" height="240">
+              <h3>Zhe Tong</h3>
+              <p class="lead">zt286@cornell.edu</p>
+              <p>Trading and economic systems, mining logic, unit types, LED hardware integration and logic, button hardware integration and logic
+          </div>
+      </div>
+
+    <hr>
+      <div style="font-size:18px">
+          <h2>Parts List</h2>
+          <ul>
+              <li>Raspberry Pi - Provided in lab</li>
+              <li>PiTFT - - Provided in lab</li>
+              <a href="https://www.adafruit.com/product/1463"><li>NeoPixel Ring - Provided in lab</li></a>
+          </ul>
+          <h3>Total: $0 ^_^</h3>
+      </div>
+      <hr>
+      <div style="font-size:18px">
+          <h2>References</h2>
+          <a href="https://learn.adafruit.com/neopixels-with-makecode">NeoPixels with MakeCode - Adafruit</a><br>
+          <a href="https://github.com/pygame/pygame">Pygame GitHub Repository</a><br>
+          <a href="https://canvas.cornell.edu/courses/79187/modules">ECE 5725 Course Materials - Cornell Canvas</a><br>
+
+      </div>
+
+    <hr>
+
+      <div class="row">
+              <h2>Code Appendix</h2>
+                <br><br>
+                <a href="touch_democurrently.py" download style="display: inline-block; background-color: #0066cc; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                  📥 Download Complete Source Code (touch_democurrently.py)
+                </a>
+                <br><br>
+                Below are key code snippets demonstrating the hardware integration:
+              </p>
+              
+              <h3 style="text-align:left; padding: 0px 30px;">GPIO Button Initialization & Event Handling</h3>
+              <pre style="text-align:left;"><code># GPIO button configuration with pull-up resistors
+import RPi.GPIO as GPIO
+
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
+
+# PiTFT button pins
+BUTTON_17 = 17  # Pause
+BUTTON_22 = 22  # Buy Worker
+BUTTON_23 = 23  # Trade
+BUTTON_27 = 27  # Exit
+
+# Configure with pull-up resistors
+for pin in [BUTTON_17, BUTTON_22, BUTTON_23, BUTTON_27]:
+    GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
+# Debounce state tracking
+button_last_state = {17: True, 22: True, 23: True, 27: True}
+button_last_time = {17: 0, 22: 0, 23: 0, 27: 0}
+DEBOUNCE_TIME = 0.2  # 200ms
+
+# Button polling in main loop (falling edge detection)
+current_time = time.time()
+button_state = GPIO.input(BUTTON_17)
+if button_state == False and button_last_state[17] == True:
+    if current_time - button_last_time[17] > DEBOUNCE_TIME:
+        game_world.paused = not game_world.paused
+        button_last_time[17] = current_time
+button_last_state[17] = button_state
+</code></pre>
+
+              <h3 style="text-align:left; padding: 0px 30px;">NeoPixel LED Game Status Update</h3>
+              <pre style="text-align:left;"><code># NeoPixel initialization
+import board
+import neopixel
+
+NEOPIXEL_PIN = board.D12  # GPIO 12
+NUM_PIXELS = 9
+pixels = neopixel.NeoPixel(NEOPIXEL_PIN, NUM_PIXELS, 
+                          brightness=0.44, auto_write=False)
+
+# Game status LED update function
+def update_game_status_leds(player_planet_count, ai_planet_count):
+    # Calculate LED count based on relative planet ownership
+    player_delta = player_planet_count - led_game_state['last_player_count']
+    ai_delta = ai_planet_count - led_game_state['last_ai_count']
+    
+    # Adjust LED count
+    if player_delta > 0 or ai_delta < 0:
+        led_game_state['current_leds'] = min(9, led_game_state['current_leds'] + 1)
+    elif player_delta < 0 or ai_delta > 0:
+        led_game_state['current_leds'] = max(0, led_game_state['current_leds'] - 1)
+    
+    # Set LED colors based on advantage level
+    for i in range(NUM_PIXELS):
+        if i < led_game_state['current_leds']:
+            if led_game_state['current_leds'] <= 3:
+                pixels[i] = (113, 35, 0)   # Orange (disadvantage)
+            elif led_game_state['current_leds'] <= 6:
+                pixels[i] = (0, 22, 113)   # Blue (even)
+            else:
+                pixels[i] = (0, 113, 0)    # Green (advantage)
+        else:
+            pixels[i] = (0, 0, 0)  # Off
+    pixels.show()
+</code></pre>
+
+              <h3 style="text-align:left; padding: 0px 30px;">AI Decision System (Threading)</h3>
+              <pre style="text-align:left;"><code># Threaded AI to prevent game blocking
+import threading
+
+def ai_think_thread(game_world):
+    """AI decision making in separate thread"""
+    try:
+        # Get game state for AI
+        state_description = game_world.get_ai_state_description()
+        
+        # Call LLM API for decision
+        response = requests.post(AI_API_URL, 
+                                json={"prompt": state_description},
+                                timeout=4)
+        
+        # Parse and execute AI action
+        action = parse_ai_response(response.json())
+        game_world.execute_ai_action(action)
+    except Exception as e:
+        # Fallback to rule-based AI
+        game_world.rule_based_ai_turn()
+
+# Start AI thread (non-blocking)
+if game_world.ai_turn:
+    ai_thread = threading.Thread(target=ai_think_thread, args=(game_world,))
+    ai_thread.daemon = True
+    ai_thread.start()
+</code></pre>
+      </div>
+
+    </div><!-- /.container -->
+
+
+
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script>window.jQuery || document.write('<script src="../../assets/js/vendor/jquery.min.js"><\/script>')</script>
+    <script src="dist/js/bootstrap.min.js"></script>
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <!-- <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script> -->
+  </body>
+</html>
